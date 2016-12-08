@@ -74,7 +74,7 @@ function updateRoute(device_id, color) {
                    map.geoObjects.add(route.getPaths());
                },
                function (error) {
-                   alert('Возникла ошибка: ' + error.message);
+                   console.log('Возникла ошибка: ' + error.message);
                }
        );
   }
@@ -96,7 +96,7 @@ function updateMarkers() {
    for(var i=0;i<markersCnt;i++) {
      var marker=markers[i];
      var temp_id=marker.ID;
-     //if (!checkMarkerExists(temp_id)) {
+     if (!checkMarkerExists(temp_id)) {
 
      var myPlacemark = new ymaps.Placemark(
 		[marker.LAT, marker.LON],
@@ -107,9 +107,23 @@ function updateMarkers() {
 			preset: 'islands#'+marker.COLOR+'CircleDotIcon'
 		}
      );
+     myPlacemark.temp_id = temp_id;
      map.geoObjects.add(myPlacemark);
+     map.markers.push(myPlacemark);
+     } else {
+         var mk=getMarkerIndex(temp_id);
+         var marker_obj=map.markers[mk];
+         var lat = parseFloat(marker.LAT);
+         var lng = parseFloat(marker.LON);
+         var oldLatLng = marker_obj.geometry.getCoordinates();
+         marker_obj.geometry.setCoordinates([lat, lng]);
+         if ((oldLatLng[0]!=lat) || (oldLatLng[1]!=lng)) {
+             // marker moved
+             map.setCenter([lat, lng]);
+         }
+     }
    }
-   updateTimeOut=setTimeout('updateMarkers();', 3000);
+   updateTimeOut=setTimeout('updateMarkers();', [#if MAP_REFRESH_TIMEOUT==""#]3[#else#][#MAP_REFRESH_TIMEOUT#][#endif#]*1000);
 
   });
  return false;
@@ -147,6 +161,7 @@ function updateMarkers() {
             , type: 'yandex#hybrid'
             [#endif#]
 		});
+        map.markers = new Array();
 		updateMarkers();
         resizeMap();
 
@@ -160,6 +175,7 @@ function updateMarkers() {
 
 function legendClicked(id, color) {
  map.geoObjects.removeAll();
+ map.markers = [];
  updateMarkers();
  updateLocations();
  updateRoute(id, color);
