@@ -148,6 +148,7 @@ function admin(&$out) {
  $out['MAPPROVIDER'] = $this->config['MAPPROVIDER'];
  $out['MAPTYPE'] = $this->config['MAPTYPE'];
  $out['MAX_ACCURACY'] = $this->config['MAX_ACCURACY'];
+ $out['MAP_REFRESH_TIMEOUT'] = $this->config['MAP_REFRESH_TIMEOUT'];
  if ($this->view_mode=='update_settings') {
    global $mapprovider;
    $this->config['MAPPROVIDER']=$mapprovider;
@@ -155,6 +156,8 @@ function admin(&$out) {
    $this->config['MAPTYPE']=$maptype;
    global $max_accuracy;
    $this->config['MAX_ACCURACY']=$max_accuracy;
+   global $map_refresh_timeout;
+   $this->config['MAP_REFRESH_TIMEOUT']=$map_refresh_timeout;
    $this->saveConfig();
    $this->redirect("?data_source=gpsoptions&ok=1");
  }
@@ -234,6 +237,7 @@ function usual(&$out) {
  $out['MAPPROVIDER'] = $this->config['MAPPROVIDER'];
  $out['MAPTYPE'] = $this->config['MAPTYPE'];
  $out['MAX_ACCURACY'] = $this->config['MAX_ACCURACY'];
+ $out['MAP_REFRESH_TIMEOUT'] = $this->config['MAP_REFRESH_TIMEOUT'];
  require(DIR_MODULES.$this->name.'/usual.inc.php');
 }
 /**

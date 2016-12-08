@@ -1,5 +1,4 @@
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
-<script type="text/javascript" src="<#ROOTHTML#>js/gmaps.js"></script>
+<script src="http://maps.api.2gis.ru/2.0/loader.js?pkg=full" type="text/javascript"></script>
 
 <script type="text/javascript" language="javascript">
 
@@ -35,20 +34,10 @@ function updateLocations() {
    if (obj.LOCATIONS.length>0) {
       var locations=obj.LOCATIONS;
       var locationsLength = locations.length;
-
       for(var i = 0; i < locationsLength; i++)
       {
-         var location = locations[i];
-         var temp_id  = location.ID;
-     
-         map.drawCircle({
-            temp_id:temp_id,
-            lat: location.LAT,
-            lng: location.LON,
-            title: location.TITLE,
-            radius: parseFloat(location.RANGE),
-            clickable: false,
-         });
+          var location = locations[i];
+          DG.circle([parseFloat(location.LAT), parseFloat(location.LON)], parseFloat(location.RANGE)).addTo(map);
       }
    }
   });
@@ -67,55 +56,18 @@ function updateRoute(device_id, color) {
    var obj=jQuery.parseJSON(data);
    if (obj.PATH.length>0) {
 
-
-    var path=obj.PATH;
     var points=obj.POINTS;
 
-    map.drawPolyline({
-     path: path,
-     strokeColor: color,
-     strokeOpacity: 0.3,
-     strokeWeight: 4
-    });
-    
-/*
-   var wps=new Array();
-   for(var i=0;i<points.length-1;i++) {
-    var point = new google.maps.LatLng(points[i].LAT,points[i].LON);
-    //var point =1;
-    wps.push({location:point});
-
-   }
-
-map.drawRoute({
-  origin: [obj.FIRST_POINT.LAT, obj.FIRST_POINT.LON],
-  destination: [obj.LAST_POINT.LAT, obj.LAST_POINT.LON],
-  waypoints: wps,
-  travelMode: 'driving',
-  strokeColor: color,
-  strokeOpacity: 0.6,
-  strokeWeight: 6
-});
-*/
-
-
-
-
-    var pointsLength = points.length;
-    for(var i = 0; i < pointsLength; i++)
-    {
-     var point=points[i];
-     var temp_id=point.ID;
-     map.addMarker({
-       temp_id:temp_id,
-       lat: point.LAT,
-       lng: point.LON,
-       title: point.TITLE,
-       icon: 'http://labs.google.com/ridefinder/images/mm_20_'+color+'.png',
-      });
-    }
-    map.fitZoom();
-   }
+	var colors = ['#FF0000', '#0000FF', '#00FF00', '#FFA500', '#A52A2A', '#808080', '#FFFF00', '#FFFFFF'];
+    var geometry = new Array();
+       points.forEach(function (item, i, points) {
+            geometry.push(new Array(parseFloat(item.LAT), parseFloat(item.LON)))
+       });
+       var polyline = DG.polyline(geometry, {color: colors[device_id]}).addTo(map);
+       map.polylines.push(polyline);
+       // увеличиваем масштаб так, чтобы было видно всю ломаную
+       map.fitBounds(polyline.getBounds());
+  }
   });
  return false;
 }
@@ -135,37 +87,26 @@ function updateMarkers() {
      var marker=markers[i];
      var temp_id=marker.ID;
      if (!checkMarkerExists(temp_id)) {
-
-
-     map.addMarker({
-       temp_id:temp_id,
-       lat: marker.LAT,
-       lng: marker.LON,
-       title: marker.NAME,
-       icon: 'http://maps.google.com/intl/en_us/mapfiles/ms/micons/'+marker.COLOR+'-dot.png',
-       infoWindow: {
-        content: marker.HTML
-       },
-      });
-
+         var mapMarker = DG.marker([parseFloat(marker.LAT), parseFloat(marker.LON)], {
+          icon : DG.icon({ iconUrl: 'http://labs.google.com/ridefinder/images/mm_20_'+marker.COLOR+'.png' }),
+          alt: marker.NAME
+      }).addTo(map);
+      map.markers.push(mapMarker);
      } else {
-
-      mk=getMarkerIndex(temp_id);
-      var marker_obj=map.markers[mk];
-      var lat = parseFloat(marker.LAT);
-      var lng = parseFloat(marker.LON);
-      var oldLatLng = marker_obj.getPosition();
-      var newLatLng = new google.maps.LatLng(lat, lng);
-      marker_obj.setPosition(newLatLng);
-
-      if ((oldLatLng.lng()!=newLatLng.lng()) || (oldLatLng.lat()!=newLatLng.lat())) {
-       // marker moved
-       map.setCenter(newLatLng.lat(), newLatLng.lng());
-      }
-
+         var mk=getMarkerIndex(temp_id);
+         var marker_obj=map.markers[mk];
+         var lat = parseFloat(marker.LAT);
+         var lng = parseFloat(marker.LON);
+         var oldLatLng = marker_obj.getLatLng();
+         var newLatLng = DG.LatLng(lat, lng);
+         marker_obj.setLatLng(newLatLng);
+         if ((oldLatLng.lng()!=newLatLng.lng()) || (oldLatLng.lat()!=newLatLng.lat())) {
+             // marker moved
+             map.flyTo(newLatLng);
+         }
      }
    }
-   updateTimeOut=setTimeout('updateMarkers();', 3000);
+   updateTimeOut=setTimeout('updateMarkers();', [#if MAP_REFRESH_TIMEOUT==""#]3[#else#][#MAP_REFRESH_TIMEOUT#][#endif#]*1000);
 
   });
  return false;
@@ -188,47 +129,43 @@ function updateMarkers() {
     var startLon=27.565269;
     [#endif#]
     
+
+		DG.then(function () {
+			map = DG.map('map', {
+                    center: [startLat, startLon],
+                    zoom: 13,
+                    geoclicker: true
+                });
+            map.markers = new Array();
+            map.polylines = new Array()
+            DG.control.location({position: 'bottomright'}).addTo(map);
+            DG.control.traffic().addTo(map);
+		});
+
     $(document).ready(function(){
-      map = new GMaps({
-        div: '#map',
-        lat: startLat,
-        lng: startLon,
-        zoom: 18,
-      });
+		updateMarkers();
+        resizeMap();
 
+        [#begin DEVICES#]
+        updateRoute([#ID#], '[#COLOR#]');
+        [#end DEVICES#]
+        updateLocations();
 
-[#if LATEST_LAT=""#]
-GMaps.geolocate({
-  success: function(position) {
-    map.setCenter(position.coords.latitude, position.coords.longitude, function() {centerChanged();});
-  },
-  error: function(error) {
-    //alert('Geolocation failed: '+error.message);
-  },
-  not_supported: function() {
-    //alert("Your browser does not support geolocation");
-  },
-  always: function() {
-    //alert("Done!");
-  }
-});
-[#endif#]
-
-updateMarkers();
-resizeMap();
-
-[#begin DEVICES#]
- updateRoute([#ID#], '[#COLOR#]');
-[#end DEVICES#]
-updateLocations();
-//
     });
 
 
 function legendClicked(id, color) {
- map.removePolylines();
- map.removeOverlays();
- map.removeMarkers();
+    for (var i=0, marker; marker=map.markers[i]; i++){
+        marker.remove();
+    }
+    map.markers = [];
+    updateMarkers();
+    for (var j=0, polyline; polyline=map.polylines[j]; j++){
+        polyline.remove();
+    }
+    map.polylines = [];
+ updateMarkers();
+ updateLocations();
  updateRoute(id, color);
  return false;
 }
@@ -277,17 +214,15 @@ function legendClicked(id, color) {
  <table width="100%" border="0">
   <tr>
    <td>
- &nbsp;&nbsp;&nbsp;
- (YYYY-MM-DD)
  </td>
  <td>
- <input type="text" name="from" value="[#FROM#]" class="form-control input-sm">
+ <input type="date" name="from" value="[#FROM#]" class="form-control input-sm">
  </td>
  <td>
  -
  </td>
  <td>
- <input type="text" name="to" value="[#TO#]" class="form-control input-sm">
+ <input type="date" name="to" value="[#TO#]" class="form-control input-sm">
   </td>
   </tr>
  </table>

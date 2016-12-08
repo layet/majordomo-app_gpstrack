@@ -167,6 +167,9 @@
   [#if "<#MAPPROVIDER#>"=="yandex"#]
   <a href="https://static-maps.yandex.ru/1.x/?l=[#if "<#MAPTYPE#>"=="hybrid"#]sat,skl[#endif#][#if "<#MAPTYPE#>"=="map"#]map[#endif#][#if "<#MAPTYPE#>"=="satellite"#]sat[#endif#]&ll=[#LON#],[#LAT#]&pt=[#LON#],[#LAT#]&size=450,450&z=16" target=_blank><#LANG_MAP#></a>
   [#endif MAPPROVIDER#]
+  [#if "<#MAPPROVIDER#>"=="2gis"#]
+  <a href="http://static.maps.2gis.com/1.0?center=[#LON#],[#LAT#]&zoom=16&size=450,450&markers=[#LON#],[#LAT#]" target=_blank><#LANG_MAP#></a>
+  [#endif MAPPROVIDER#]
  </td>
 [#endif IS_SET_LOCATION_ID#]
  <td bgcolor="[#if NEW_COLOR#]#CCCCCC[#else#]#FFFFFF[#endif#]">

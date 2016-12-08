@@ -15,6 +15,7 @@
 <select class="form-control" name="mapprovider">
     <option value="google" [#if MAPPROVIDER=="google"#] selected[#endif#]>Google</option>
     <option value="yandex" [#if MAPPROVIDER=="yandex"#] selected[#endif#]>Yandex</option>
+    <option value="2gis" [#if MAPPROVIDER=="2gis"#] selected[#endif#]>2GIS</option>
    </select>
 </div>
 </div>
@@ -35,6 +36,14 @@
     <div class="col-lg-6">
         <input type="number" class="form-control" name="max_accuracy" value="[#if MAX_ACCURACY==""#]0[#else#][#MAX_ACCURACY#][#endif#]" class="input">
 		<p class="help-block"><#LANG_GPSTRACK_MAX_ACCURACY_DESC#></p>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="control-label"> <#LANG_GPSTRACK_MAP_REFRESH_TIMEOUT#> </label>
+    <div class="col-lg-6">
+        <input type="number" class="form-control" name="map_refresh_timeout" value="[#if MAP_REFRESH_TIMEOUT==""#]3[#else#][#MAP_REFRESH_TIMEOUT#][#endif#]" class="input">
+        <p class="help-block"><#LANG_GPSTRACK_MAP_REFRESH_TIMEOUT_DESC#></p>
     </div>
 </div>
 
