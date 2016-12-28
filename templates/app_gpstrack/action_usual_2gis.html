@@ -91,6 +91,7 @@ function updateMarkers() {
           icon : DG.icon({ iconUrl: 'http://labs.google.com/ridefinder/images/mm_20_'+marker.COLOR+'.png' }),
           alt: marker.NAME
       }).addTo(map);
+      mapMarker.temp_id = temp_id;
       map.markers.push(mapMarker);
      } else {
          var mk=getMarkerIndex(temp_id);
